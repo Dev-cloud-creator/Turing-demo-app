@@ -418,11 +418,13 @@
 							"script": {
 								"exec": [
 									"const dateNow = new Date();\r",
-									"pm.environment.set('currentDate', dateNow.toISOString().split('T')[0]);\r",
+									"console.log(dateNow.getFullYear() + \"-\" + dateNow.getMonth() + \"-\" + dateNow.getDate());\r",
+									"pm.environment.set('currentDate', dateNow.getFullYear() + \"-\" + dateNow.getMonth() + \"-\" + dateNow.getDate());\r",
 									"pm.environment.set('currentHour', dateNow.getHours())\r",
 									"pm.environment.set('currentMin', dateNow.getMinutes() > 30 ? 30 : 0)\r",
-									"const futureDate = new Date(dateNow.setDate(dateNow.getDate() + 14)).toISOString();\r",
-									"pm.environment.set('futureDate', dateNow.toISOString().split('T')[0]);"
+									"const futureDate = new Date(new Date().getTime() + (14 * 86400000));\r",
+									"console.log(futureDate.toISOString().split(\"T\")[0]);\r",
+									"pm.environment.set('futureDate', futureDate.toISOString().split(\"T\")[0]);"
 								],
 								"type": "text/javascript",
 								"packages": {}

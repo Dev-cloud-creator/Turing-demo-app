@@ -121,7 +121,7 @@ router.get('/schedulereview/:mentorid/:date/:hour/:min', (0, authorize_1.authori
         let date = new Date((_f = req.params.date) !== null && _f !== void 0 ? _f : new Date().toString());
         let hour = Number((_g = req.params.hour) !== null && _g !== void 0 ? _g : -1);
         let min = Number((_h = req.params.min) !== null && _h !== void 0 ? _h : -1);
-        if (hour && min && (hour >= 0 && hour <= 24) && (min == 0 || min == 30)) {
+        if (hour >= 0 && hour <= 24 && (min == 0 || min == 30)) {
             date.setHours(hour);
             date.setMinutes(min);
             let startUTCTime = Math.floor(date.getTime() / 1000);
