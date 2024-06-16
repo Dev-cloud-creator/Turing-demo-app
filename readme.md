@@ -39,8 +39,15 @@ Setup project:
 
 ```cmd
   npm install
+```
+
+Build project and start:
+
+```cmd
+  npx tsc
   node .\build\index.js
 ```
+
 --OUTPUT: API started at http://localhost:3000
 
 
