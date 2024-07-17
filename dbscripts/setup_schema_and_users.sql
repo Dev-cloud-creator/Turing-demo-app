@@ -1,4 +1,4 @@
-CREATE DATABASE turingapp;
+--CREATE DATABASE turingapp;
 --CONNECT turingapp;
 CREATE SCHEMA turingschema;
 
