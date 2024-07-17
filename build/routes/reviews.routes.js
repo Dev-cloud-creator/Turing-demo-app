@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -34,17 +11,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 // src/routes/Reviews.routes.ts
 const express_1 = require("express");
-const review_1 = __importStar(require("../models/review"));
-const user_1 = require("../models/user");
-const database_1 = require("../database");
 const authorize_1 = require("../authorization/authorize");
-const sequelize_1 = require("sequelize");
+const admin_controller_1 = require("../controllers/admin.controller");
 const router = (0, express_1.Router)();
+const _adminController = new admin_controller_1.AdminController();
 // GET - Admin - List all Reviews
 router.get('/', (0, authorize_1.authorize)(authorize_1.Roles.Admin), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        (0, review_1.ReviewMap)(database_1.database);
-        const result = yield review_1.default.findAll();
+        const result = yield _adminController.ListReviews();
         res.status(200).json({ Reviews: result });
     }
     catch (ex) {
@@ -54,8 +28,7 @@ router.get('/', (0, authorize_1.authorize)(authorize_1.Roles.Admin), (req, res) 
 // GET - Admin - List one review by id - Reviews/:id
 router.get('/:id', (0, authorize_1.authorize)(authorize_1.Roles.Admin), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        (0, review_1.ReviewMap)(database_1.database);
-        const result = yield review_1.default.findByPk(req.params.id);
+        const result = yield _adminController.GetReviewById(req.params.id);
         res.status(200).json({ Reviews: result });
     }
     catch (ex) {
@@ -66,16 +39,10 @@ router.get('/:id', (0, authorize_1.authorize)(authorize_1.Roles.Admin), (req, re
 router.get('/getReviewsForUser/:userid', (0, authorize_1.authorize)(authorize_1.Roles.Admin), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { userid } = req.params;
-        (0, review_1.ReviewMap)(database_1.database);
-        let result = yield review_1.default.findAll({
-            where: {
-                [sequelize_1.Op.or]: [
-                    { mentor_id: Number(userid) },
-                    { student_id: Number(userid) }
-                ]
-            }
-        });
-        res.status(200).json({ Review: result });
+        if (userid)
+            res.status(200).json({ Review: yield _adminController.GetReviewsByUser(userid) });
+        else
+            res.status(404).json({ Message: "notfound" });
     }
     catch (ex) {
         res.status(501).json({ exception: ex });
@@ -84,26 +51,22 @@ router.get('/getReviewsForUser/:userid', (0, authorize_1.authorize)(authorize_1.
 // POST - Admin - update any review
 router.post('/', (0, authorize_1.authorize)(authorize_1.Roles.Admin), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        (0, user_1.UserMap)(database_1.database);
-        (0, review_1.ReviewMap)(database_1.database);
-        const result = yield review_1.default.create(req.body);
-        let newReview = result.dataValues;
-        res.status(201).json({ Review: newReview });
+        const result = yield _adminController.CreateOrUpdateReview(req.body);
+        res.status(201).json({ Review: result });
     }
     catch (ex) {
         res.status(501).json({ exception: ex });
     }
 }));
-// POST - Admin - Cancel a Review
+// PUT - Admin - Cancel a Review
 router.put('/cancelReview/:id', (0, authorize_1.authorize)(authorize_1.Roles.Admin), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        (0, review_1.ReviewMap)(database_1.database);
-        let result = yield review_1.default.findByPk(req.params.id);
+        let result = yield _adminController.CancelReview(req.params.id);
         if (result) {
-            result.statetype = review_1.StateType.CANCELED;
-            result.save();
             res.status(202).json({ Review: result });
         }
+        else
+            res.status(412).json({ Message: "failed to update" });
     }
     catch (ex) {
         res.status(501).json({ exception: ex });

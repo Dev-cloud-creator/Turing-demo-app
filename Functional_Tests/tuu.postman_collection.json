@@ -419,7 +419,7 @@
 								"exec": [
 									"const dateNow = new Date();\r",
 									"console.log(dateNow.getFullYear() + \"-\" + dateNow.getMonth() + \"-\" + dateNow.getDate());\r",
-									"pm.environment.set('currentDate', dateNow.getFullYear() + \"-\" + dateNow.getMonth() + \"-\" + dateNow.getDate());\r",
+									"pm.environment.set('currentDate', dateNow.getFullYear() + \"-\" + (dateNow.getMonth() + 1) + \"-\" + dateNow.getDate());\r",
 									"pm.environment.set('currentHour', dateNow.getHours())\r",
 									"pm.environment.set('currentMin', dateNow.getMinutes() > 30 ? 30 : 0)\r",
 									"const futureDate = new Date(new Date().getTime() + (14 * 86400000));\r",
@@ -546,7 +546,7 @@
 							}
 						],
 						"url": {
-							"raw": "http://localhost:3000/students/schedulereview/{{mentorid}}/{{futureDate}}/14/30",
+							"raw": "http://localhost:3000/students/schedulereview/{{mentorid}}/{{futureDate}}/18/30",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -557,7 +557,7 @@
 								"schedulereview",
 								"{{mentorid}}",
 								"{{futureDate}}",
-								"14",
+								"18",
 								"30"
 							]
 						}

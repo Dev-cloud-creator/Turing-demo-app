@@ -2,22 +2,18 @@
 import { Router, Request, Response } from 'express';
 import Review, { ReviewMap, StateType } from '../models/review';
 import User, { UserMap } from '../models/user';
-import { database } from '../database';
 import { Op } from 'sequelize';
 import { Roles, authorize } from '../authorization/authorize';
+import { MentorController } from '../controllers/mentor.controller';
 const router = Router();
+const _mentorController = new MentorController();
 
 // POST - Mentor - get all reviews - mentors/getReviews
 router.get('/getReviews', authorize(Roles.Mentor), async (req: Request, res: Response) => {
   
   try {
     var loggedinUser = (req as any).user as User;
-    ReviewMap(database);
-    let result = await Review.findAll({
-      where: {
-        mentor_id: Number(loggedinUser.id)
-      }
-    });
+    let result = await _mentorController.ListReviews(loggedinUser.id);
     res.status(200).json({ Review: result });
   }
   catch(ex)
@@ -31,21 +27,9 @@ router.get('/getReviews', authorize(Roles.Mentor), async (req: Request, res: Res
 router.put('/startReview/:id', authorize(Roles.Mentor), async (req: Request, res: Response) => {
   
   try {
-    ReviewMap(database);
     var loggedinUser = (req as any).user as User;
-    let result = await Review.findOne<Review>({
-      where: {
-        id: req.params.id,
-        mentor_id: loggedinUser.id,
-      }
-    });
-
-    if(result && result.timestart && result.timestart <= Math.floor((new Date()).getTime() / 1000))
-    {
-      result.statetype = StateType.INPROGRESS;
-      result.save()
-      res.status(202).json({ Review: result });
-    }
+    let result = await _mentorController.StartReview(req.params.id,loggedinUser.id);
+    res.status(202).json({ Review: result });
   }
   catch(ex)
   {
@@ -58,24 +42,9 @@ router.put('/startReview/:id', authorize(Roles.Mentor), async (req: Request, res
 router.put('/completeReview/:id', authorize(Roles.Mentor), async (req: Request, res: Response) => {
   
   try {
-    ReviewMap(database);
     var loggedinUser = (req as any).user as User;
-    let result = await Review.findOne<Review>({
-      where: {
-        id: req.params.id,
-        mentor_id: loggedinUser.id,
-      }
-    });
-
-    if(result && result.timestart && result.statetype == StateType.INPROGRESS 
-      && result.timestart <= Math.floor((new Date()).getTime() / 1000))
-    {
-      result.statetype = StateType.COMPLETED;
-      result.score = req.body.score;
-      result.comments = req.body.comments;
-      result.save()
-      res.status(202).json({ Review: result });
-    }
+    var result = await _mentorController.CompleteReview(req.params.id, loggedinUser.id, req.body.score, req.body.comments);
+    res.status(202).json({ Review: result });
   }
   catch(ex)
   {
@@ -88,21 +57,9 @@ router.put('/completeReview/:id', authorize(Roles.Mentor), async (req: Request, 
 router.put('/cancelReview/:id', authorize(Roles.Mentor), async (req: Request, res: Response) => {
   
   try {
-    ReviewMap(database);
     var loggedinUser = (req as any).user as User;
-    let result = await Review.findOne<Review>({
-      where: {
-        id: req.params.id,
-        mentor_id: loggedinUser.id,
-      }
-    });
-
-    if(result && result.timestart && result.timestart >= Math.floor((new Date()).getTime() / 1000))
-    {
-      result.statetype = StateType.CANCELED;
-      result.save()
-      res.status(202).json({ Review: result });
-    }
+    let result = await _mentorController.CancelReview(req.params.id, loggedinUser.id);
+    res.status(202).json({ Review: result });
   }
   catch(ex)
   {

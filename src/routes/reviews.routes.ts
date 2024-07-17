@@ -1,17 +1,14 @@
 // src/routes/Reviews.routes.ts
 import { Router, Request, Response } from 'express';
-import Review, { ReviewMap, StateType } from '../models/review';
-import User, { UserMap } from '../models/user';
-import { database } from '../database';
 import { Roles, authorize } from '../authorization/authorize';
-import { Op } from 'sequelize';
+import { AdminController } from '../controllers/admin.controller';
 const router = Router();
+const _adminController = new AdminController();
 
 // GET - Admin - List all Reviews
 router.get('/', authorize(Roles.Admin), async (req: Request, res: Response) => {
   try {
-    ReviewMap(database);
-    const result = await Review.findAll();
+    const result = await _adminController.ListReviews();
     res.status(200).json({ Reviews: result });
   }
   catch (ex) {
@@ -22,8 +19,7 @@ router.get('/', authorize(Roles.Admin), async (req: Request, res: Response) => {
 // GET - Admin - List one review by id - Reviews/:id
 router.get('/:id', authorize(Roles.Admin), async (req: Request, res: Response) => {
   try {
-    ReviewMap(database);
-    const result = await Review.findByPk(req.params.id);
+    const result = await _adminController.GetReviewById(req.params.id);
     res.status(200).json({ Reviews: result });
   }
   catch (ex) {
@@ -36,16 +32,10 @@ router.get('/getReviewsForUser/:userid', authorize(Roles.Admin), async (req: Req
 
   try {
     const { userid } = req.params;
-    ReviewMap(database);
-    let result = await Review.findAll({
-      where: {
-        [Op.or]: [
-          { mentor_id: Number(userid) },
-          { student_id: Number(userid) }
-        ]
-      }
-    });
-    res.status(200).json({ Review: result });
+    if (userid)
+      res.status(200).json({ Review: await _adminController.GetReviewsByUser(userid) });
+    else
+      res.status(404).json({ Message: "notfound" });
   }
   catch (ex) {
     res.status(501).json({ exception: ex });
@@ -57,11 +47,8 @@ router.get('/getReviewsForUser/:userid', authorize(Roles.Admin), async (req: Req
 router.post('/', authorize(Roles.Admin), async (req: Request, res: Response) => {
 
   try {
-    UserMap(database);
-    ReviewMap(database);
-    const result = await Review.create(req.body);
-    let newReview = result.dataValues as Review;
-    res.status(201).json({ Review: newReview });
+    const result = await _adminController.CreateOrUpdateReview(req.body);
+    res.status(201).json({ Review: result });
   }
   catch (ex) {
     res.status(501).json({ exception: ex });
@@ -69,19 +56,16 @@ router.post('/', authorize(Roles.Admin), async (req: Request, res: Response) => 
 
 });
 
-
-
-// POST - Admin - Cancel a Review
+// PUT - Admin - Cancel a Review
 router.put('/cancelReview/:id', authorize(Roles.Admin), async (req: Request, res: Response) => {
 
   try {
-    ReviewMap(database);
-    let result = await Review.findByPk<Review>(req.params.id);
+    let result = await _adminController.CancelReview(req.params.id);
     if (result) {
-      result.statetype = StateType.CANCELED;
-      result.save()
       res.status(202).json({ Review: result });
     }
+    else
+      res.status(412).json({ Message: "failed to update" });
   }
   catch (ex) {
     res.status(501).json({ exception: ex });

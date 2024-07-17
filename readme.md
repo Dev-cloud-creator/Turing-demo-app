@@ -58,3 +58,12 @@ Import Postman environment and collection for functional tests:
 Environments: <your-path-to-folder>\Functional_Tests\tuu_test.postman_environment.json
 
 Collection: <your-path-to-folder>\Functional_Tests\tuu.postman_collection.json
+
+
+UPDATES (17 JULY 2024) ----------------
+
+#Clean and reusable design principles
+
+#Separation of components
+
+#More readable codebase

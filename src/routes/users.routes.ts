@@ -1,16 +1,14 @@
 // src/routes/users.routes.ts
 import { Router, Request, Response } from 'express';
-import User, { UserMap } from '../models/user';
-import { database } from '../database';
-import Review, { ReviewMap } from '../models/review';
 import { Roles, authorize, issueToken } from '../authorization/authorize';
+import { AdminController } from '../controllers/admin.controller';
 const router = Router();
+const _adminController = new AdminController();
 
 // GET - Admin - List all users
 router.get('/', authorize(Roles.Admin), async (req: Request, res: Response) => {
     try{
-        UserMap(database);
-        const result = await User.findAll();    
+        const result = await _adminController.ListUsers();    
         res.status(200).json({ users: result });
     }
     catch(ex)
@@ -22,9 +20,7 @@ router.get('/', authorize(Roles.Admin), async (req: Request, res: Response) => {
 // GET - Admin - get a user - users/:id
 router.get('/:id', authorize(Roles.Admin), async (req: Request, res: Response) => {
     try{
-        UserMap(database);
-        ReviewMap(database);
-        const result = await User.findByPk(req.params.id);
+        let result = await _adminController.GetUserById(req.params.id);
         res.status(200).json({ users: result });
     }
     catch(ex)
@@ -37,9 +33,7 @@ router.get('/:id', authorize(Roles.Admin), async (req: Request, res: Response) =
 router.post('/', authorize(Roles.Admin), async (req: Request, res: Response) => {
   
   try {
-    UserMap(database);
-    const result = await User.create(req.body);
-    let newUser = result.dataValues as User;
+    let newUser = await _adminController.CreateOrUpdateUser(req.body);
     const token = issueToken(newUser);
     res.status(201).json({ ...newUser, token });
   }
